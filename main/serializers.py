@@ -22,4 +22,5 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'description',
             'price',
             'cover',
+            'owner',
         ]
