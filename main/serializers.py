@@ -10,6 +10,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'pk',
             'title',
+            'owner',
         ]
 
 
