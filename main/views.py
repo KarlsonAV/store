@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView
 from django.core import serializers
-from .serializers import ProductListSerializer, ProductDetailSerializer
+from .serializers import ProductListSerializer, ProductDetailSerializer, ReviewsListSerializer, ReviewsCreateSerializer
 from users.models import User
 from .models import Product
 from rest_framework.authtoken.models import Token
@@ -23,12 +23,22 @@ class ProductDetailView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk, format=None):
-        check = Product.objects.get(pk=pk)
-        product = ProductDetailSerializer(Product.objects.get(pk=pk)).data
+        queryset = Product.objects.get(pk=pk)
+        product = ProductDetailSerializer(queryset).data
+        reviews = [ReviewsListSerializer(instance=review).data for review in queryset.reviews.all()]
         context = {
-            'product': product
+            'product': product,
+            'reviews': reviews,
         }
         return Response(context, status=status.HTTP_200_OK)
+
+    def post(self, request, pk, format=None):
+        data = dict(request.data.items())
+        serializer = ReviewsCreateSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(author=request.user, product=Product.objects.get(pk=pk))
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProductCreateView(APIView):
