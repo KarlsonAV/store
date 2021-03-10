@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView
+from django.db.models import Q
 from django.core import serializers
 from .serializers import ProductListSerializer, ProductDetailSerializer, ReviewsListSerializer, ReviewsCreateSerializer
 from users.models import User
@@ -47,6 +48,7 @@ class ProductCreateView(APIView):
     def post(self, request, format=None):
         serializer = ProductDetailSerializer(data=request.data)
         if serializer.is_valid():
+            print('VALID')
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -75,3 +77,17 @@ class ProductUpdateView(APIView):
         product.save()
         serializer = ProductDetailSerializer(product)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class FilterByCategory(APIView):
+
+    def get(self, request, format=None):
+        tags = request.GET.get('categories')
+        if tags:
+            object = Product.objects.filter(Q(categories__icontains=tags))
+            filtered_products = [ProductListSerializer(instance=product).data for product in object]
+            context = {
+                'filtered_products': filtered_products,
+            }
+            return Response(context, status=status.HTTP_200_OK)
+        return Response('There is nothing', status=status.HTTP_200_OK)
