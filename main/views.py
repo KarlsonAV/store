@@ -1,13 +1,9 @@
 from rest_framework.views import APIView
-from rest_framework.generics import UpdateAPIView
 from django.db.models import Q
-from django.core import serializers
 from .serializers import ProductListSerializer, ProductDetailSerializer, ReviewsListSerializer, ReviewsCreateSerializer
-from users.models import User
 from .models import Product
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework import status, authentication, permissions
+from rest_framework import status, permissions
 
 
 class ProductListView(APIView):
@@ -48,7 +44,6 @@ class ProductCreateView(APIView):
     def post(self, request, format=None):
         serializer = ProductDetailSerializer(data=request.data)
         if serializer.is_valid():
-            print('VALID')
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
